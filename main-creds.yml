@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Secret
+metadata:
+  name: main-creds
+  namespace: postgres
+type: Opaque
+## use command for create secret
+## echo -n "you-password" | base 64
+data:
+  db-password: 

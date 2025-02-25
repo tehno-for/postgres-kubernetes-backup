@@ -1,0 +1,46 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: backup-job
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      volumes:
+        - name: backup-data
+          persistentVolumeClaim:
+            claimName: backup-pvc
+      serviceAccountName: github
+      restartPolicy: Never
+      containers:
+      - name: migration
+        image: rustam4docker01/backup:latest
+        command: ["/bin/sh", "-c"]
+        args: 
+          - |
+              echo "--------Start backup -----"
+              python /app/postgres_backup.py
+              echo "--------Finish backup -----"
+        volumeMounts:
+          - mountPath: "/app/backup"
+            name: backup-data
+        env:
+        ### DB Creds Add you creds
+          - name: POSTGRES_USER
+            value: "postgres"
+        ### Need create secret with postgres db password
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: main-creds
+                key: db-password
+          - name: POSTGRES_DB
+            value: "postgres"
+          # Postgress host here
+          - name: POSTGRES_HOST
+            value: postgres-svc.postgres.svc.cluster.local
+          # MAx files in folder
+          - name: MAX_FILES
+            value: 5
+      imagePullSecrets:
+        - name: ghcr-login-secret
