@@ -65,7 +65,7 @@ jobs:
 
   rollout:
     name: Rollout
-    needs: [prepare, build]
+    needs: [prepare]
     runs-on: ubuntu-latest
     steps:
       - name: Check Pods
