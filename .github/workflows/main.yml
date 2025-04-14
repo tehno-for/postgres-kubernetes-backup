@@ -1,0 +1,81 @@
+name: Deployment
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      confirm:
+        required: true
+        description: "WARNING this triggers a production rollout"
+  release:
+    types:
+      - created
+    branches:
+      - main
+
+jobs:
+  prepare:
+    name: Prepare
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Read Version
+        id: version
+        run: |
+          echo "Reading package.json"
+          PACKAGE_VERSION=$(cat ./package.json | jq '.version' | tr -d '"')
+          echo ::set-output name=value::$PACKAGE_VERSION-build.${{ github.run_id }}
+      - name: Check Version
+        run: |
+          if [[ "${{ steps.version.outputs.value  }}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$ ]]; then
+            echo "Version: ${{ steps.version.outputs.value  }}"
+          else
+            echo "Invalid Version: ${{ steps.version.outputs.value }}"
+            exit 1
+          fi
+      - name: Select Environment
+        id: environment
+        run: |
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+              echo "::set-output name=value::staging"
+          fi
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+              echo "::set-output name=value::production"
+          fi
+          # if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+          #     echo "::set-output name=value::development"
+          # fi
+          # if [[ contains(github.event.head_commit.message, '_cron_') ]]; then
+          #       echo "::set-output name=value::cronjob"
+          # fi
+      - name: Check Environment
+        run: |
+          if [[ "${{ steps.environment.outputs.value }}" != "development" && "${{ steps.environment.outputs.value }}" != "staging" && "${{ steps.environment.outputs.value }}" != "production" ]]; then
+            echo "Invalid Environment: ${{ steps.environment.outputs.value }}"
+            exit 1
+          fi
+          echo "Environment: ${{ steps.environment.outputs.value }}"
+    outputs:
+      version: ${{ steps.version.outputs.value  }}
+      environment: ${{ steps.environment.outputs.value  }}
+      publish_url: https://stg.liza.zone
+
+
+  rollout:
+    name: Rollout
+    needs: [prepare, build]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check Pods
+        if: needs.prepare.outputs.environment == 'staging'
+        run: echo "staging"
+      - name: Check Pods
+        if: needs.prepare.outputs.environment == 'production'
+        run: echo "production"
+      - name: Check Pods
+        if: needs.prepare.outputs.environment == 'staging' || needs.prepare.outputs.environment == 'production'
+        run: echo "cronjob"
+
+
