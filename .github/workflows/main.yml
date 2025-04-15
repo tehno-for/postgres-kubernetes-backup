@@ -67,7 +67,7 @@ jobs:
         if: needs.prepare.outputs.environment == 'production'
         run: echo "production"
       - name: Check Pods
-        if: needs.prepare.outputs.environment == 'staging' || needs.prepare.outputs.environment == 'production'
+        if: needs.prepare.outputs.environment == 'cronjob'
         run: echo "cronjob"
 
 
