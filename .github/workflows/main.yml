@@ -92,4 +92,7 @@ jobs:
         if: needs.prepare.outputs.environment == 'staging'
         run: |
               kubectl get pods
+      - name: Check commit
+        run: |
+              echo $github.event.head_commit.message
 
