@@ -89,6 +89,7 @@ jobs:
           k8s-url: ${{ secrets.K8S_STAGE_ENDPOINT }}
           k8s-secret: ${{ secrets.K8S_STAGE_CRON_ACCOUNT }}
       - name: Check workflow
+        if: needs.prepare.outputs.environment == 'staging'
         run: |
               kubectl get pods
 
