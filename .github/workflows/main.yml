@@ -84,7 +84,7 @@ jobs:
         with:
           method: service-account
           k8s-url: ${{ secrets.K8S_STAGE_ENDPOINT }}
-          k8s-secret: ${{ K8S_STAGE_CRON_ACCOUNT }}
+          k8s-secret: ${{ secrets.K8S_STAGE_CRON_ACCOUNT }}
       - name: Check workflow
         run: |
               kubectl get pods
