@@ -60,14 +60,32 @@ jobs:
     needs: [prepare]
     runs-on: ubuntu-latest
     steps:
-      - name: Check Pods
+      - name: Check Stage
         if: needs.prepare.outputs.environment == 'staging' && !contains(github.event.head_commit.message, '_cron_')
         run: echo "staging"
-      - name: Check Pods
-        if: needs.prepare.outputs.environment == 'production'
+      - name: Check Prod
+        if: needs.prepare.outputs.environment == 'production' && contains(github.event.head_commit.message, '_cron_')
         run: echo "production"
-      - name: Check Pods
+      - name: Check Cron
         if: needs.prepare.outputs.environment == 'staging' && contains(github.event.head_commit.message, '_cron_')
         run: echo "cronjob"
-
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Kubernetes staging context
+        uses: Azure/k8s-set-context@v2
+        if: needs.prepare.outputs.environment == 'staging' && !contains(github.event.head_commit.message, '_cron_')
+        with:
+          method: service-account
+          k8s-url: ${{ secrets.K8S_STAGE_ENDPOINT }}
+          k8s-secret: ${{ secrets.K8S_STAGE_APP_ACCOUNT }}
+      - name: Kubernetes production context
+        uses: Azure/k8s-set-context@v2
+        if: needs.prepare.outputs.environment == 'staging' && contains(github.event.head_commit.message, '_cron_')
+        with:
+          method: service-account
+          k8s-url: ${{ secrets.K8S_STAGE_ENDPOINT }}
+          k8s-secret: ${{ K8S_STAGE_CRON_ACCOUNT }}
+      - name: Check workflow
+        run: |
+              kubectl get pods
 
