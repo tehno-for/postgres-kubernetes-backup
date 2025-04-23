@@ -85,10 +85,14 @@ jobs:
           method: service-account
           k8s-url: ${{ secrets.K8S_STAGE_ENDPOINT }}
           k8s-secret: ${{ secrets.K8S_STAGE_CRON_ACCOUNT }}
-      - name: Check workflow
-        if: needs.prepare.outputs.environment == 'staging'
+      - name: Check workflow stage
+        if: needs.prepare.outputs.environment == 'staging' && !contains(github.event.head_commit.message, '_cron_')
         run: |
               kubectl get pods
+      - name: Check workflow cron
+        if: needs.prepare.outputs.environment == 'staging' && contains(github.event.head_commit.message, '_cron_')
+        run: |
+              kubectl get pods -n cronjobs
       - name: Check commit
         run: |
               echo "Commit message: ${{ github.event.head_commit.message }}"
