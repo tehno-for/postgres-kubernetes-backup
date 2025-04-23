@@ -54,7 +54,7 @@ jobs:
       environment: ${{ steps.environment.outputs.value  }}
       publish_url: https://stg.liza.zone
 
-
+####
   rollout:
     name: Rollout
     needs: [prepare]
@@ -63,9 +63,12 @@ jobs:
       - name: Check Stage
         if: needs.prepare.outputs.environment == 'staging' && !contains(github.event.head_commit.message, '_cron_')
         run: echo "staging"
-      - name: Check Prod
+      - name: Check Prod Standart
+        if: needs.prepare.outputs.environment == 'production' && !contains(github.event.head_commit.message, '_cron_')
+        run: echo "production wo cron"
+      - name: Check Prod Cron
         if: needs.prepare.outputs.environment == 'production' && contains(github.event.head_commit.message, '_cron_')
-        run: echo "production"
+        run: echo "production Cron"
       - name: Check Cron
         if: needs.prepare.outputs.environment == 'staging' && contains(github.event.head_commit.message, '_cron_')
         run: echo "cronjob"
