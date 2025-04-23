@@ -81,7 +81,7 @@ jobs:
           method: service-account
           k8s-url: ${{ secrets.K8S_STAGE_ENDPOINT }}
           k8s-secret: ${{ secrets.K8S_STAGE_APP_ACCOUNT }}
-      - name: Kubernetes production context
+      - name: Kubernetes cron context
         uses: Azure/k8s-set-context@v2
         if: needs.prepare.outputs.environment == 'staging' && contains(github.event.head_commit.message, '_cron_')
         with:
@@ -94,5 +94,5 @@ jobs:
               kubectl get pods
       - name: Check commit
         run: |
-              echo $github.event.head_commit.message
+              echo "Commit message: ${{ github.event.head_commit.message }}"
 
