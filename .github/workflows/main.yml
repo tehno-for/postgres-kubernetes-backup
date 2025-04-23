@@ -92,4 +92,4 @@ jobs:
       - name: Check commit
         run: |
               echo "Commit message: ${{ github.event.head_commit.message }}"
-              echo "Commit tag: {{ github.event.release.tag_name }}"
+              echo "Commit tag: ${{ github.event.release.tag_name }}"
