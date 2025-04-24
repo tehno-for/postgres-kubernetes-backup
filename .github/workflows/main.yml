@@ -46,12 +46,9 @@ jobs:
                 echo "::set-output name=value::production"
               fi
           fi
-          echo "#####################Finish environment variables####################"
-          set
-          echo "######################Finish environment variables######################"
       - name: Check Environment
         run: |
-          if [[ "${{ steps.environment.outputs.value }}" != "development" && "${{ steps.environment.outputs.value }}" != "staging" && "${{ steps.environment.outputs.value }}" != "production" && "${{ steps.environment.outputs.value }}" != "cronjob" ]]; then
+          if [[ "${{ steps.environment.outputs.value }}" != "development" && "${{ steps.environment.outputs.value }}" != "staging" && "${{ steps.environment.outputs.value }}" != "production" && "${{ steps.environment.outputs.value }}" != "cronjob" && "${{ steps.environment.outputs.value }}" != "prod_cron" ]]; then
             echo "Invalid Environment: ${{ steps.environment.outputs.value }}"
             exit 1
           fi
