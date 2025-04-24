@@ -45,6 +45,9 @@ jobs:
           # if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
           #     echo "::set-output name=value::development"
           # fi
+          echo "#####################Finish environment variables####################"
+          set
+          echo "######################Finish environment variables######################"
       - name: Check Environment
         run: |
           if [[ "${{ steps.environment.outputs.value }}" != "development" && "${{ steps.environment.outputs.value }}" != "staging" && "${{ steps.environment.outputs.value }}" != "production" && "${{ steps.environment.outputs.value }}" != "cronjob" ]]; then
@@ -64,44 +67,42 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Check Stage
-        if: needs.prepare.outputs.environment == 'staging' && !contains(github.event.head_commit.message, '_cron_')
+        if: needs.prepare.outputs.environment == 'staging'
         run: echo "staging"
       - name: Check Prod Standart
-        if: needs.prepare.outputs.environment == 'production' && !contains(github.event.head_commit.message, '_cron_')
+        if: needs.prepare.outputs.environment == 'production'
         run: echo "production wo cron"
       - name: Check Prod Cron
-        if: needs.prepare.outputs.environment == 'production' && contains(github.event.head_commit.message, '_cron_')
+        if: needs.prepare.outputs.environment == 'production_cron'
         run: echo "production Cron"
       - name: Check Cron
-        if: needs.prepare.outputs.environment == 'staging' && contains(github.event.head_commit.message, '_cron_')
+        if: needs.prepare.outputs.environment == 'cronjob'
         run: echo "cronjob"
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Kubernetes staging context
         uses: Azure/k8s-set-context@v2
-        if: needs.prepare.outputs.environment == 'staging' && !contains(github.event.head_commit.message, '_cron_')
+        if: needs.prepare.outputs.environment == 'staging'
         with:
           method: service-account
           k8s-url: ${{ secrets.K8S_STAGE_ENDPOINT }}
           k8s-secret: ${{ secrets.K8S_STAGE_APP_ACCOUNT }}
       - name: Kubernetes cron context
         uses: Azure/k8s-set-context@v2
-        if: needs.prepare.outputs.environment == 'staging' && contains(github.event.head_commit.message, '_cron_')
+        if: needs.prepare.outputs.environment == 'cronjob'
         with:
           method: service-account
           k8s-url: ${{ secrets.K8S_STAGE_ENDPOINT }}
           k8s-secret: ${{ secrets.K8S_STAGE_CRON_ACCOUNT }}
       - name: Check workflow stage
-        if: needs.prepare.outputs.environment == 'staging' && !contains(github.event.head_commit.message, '_cron_')
+        if: needs.prepare.outputs.environment == 'staging'
         run: |
               kubectl get pods
       - name: Check workflow cron
-        if: needs.prepare.outputs.environment == 'staging' && contains(github.event.head_commit.message, '_cron_')
+        if: needs.prepare.outputs.environment == 'cronjob'
         run: |
               kubectl get pods -n cronjobs
       - name: Check commit
         run: |
               echo "Commit message: ${{ github.event.head_commit.message }}"
               echo "Commit tag: ${{ github.event.release.tag_name }}"
-
-###
