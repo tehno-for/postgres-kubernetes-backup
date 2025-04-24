@@ -40,11 +40,12 @@ jobs:
               fi
           fi
           if [[ "${{ github.event_name }}" == "release" ]]; then
-              echo "::set-output name=value::production"
+               if [[  "$COMMIT_MSG" == *"_cron_"* ]]; then
+                echo "::set-output name=value::prod_cron"
+              else
+                echo "::set-output name=value::production"
+              fi
           fi
-          # if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
-          #     echo "::set-output name=value::development"
-          # fi
           echo "#####################Finish environment variables####################"
           set
           echo "######################Finish environment variables######################"
@@ -73,7 +74,7 @@ jobs:
         if: needs.prepare.outputs.environment == 'production'
         run: echo "production wo cron"
       - name: Check Prod Cron
-        if: needs.prepare.outputs.environment == 'production_cron'
+        if: needs.prepare.outputs.environment == 'prod_cron'
         run: echo "production Cron"
       - name: Check Cron
         if: needs.prepare.outputs.environment == 'cronjob'
