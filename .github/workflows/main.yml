@@ -65,7 +65,7 @@ jobs:
 ####
   rollout:
     name: Rollout
-    if: needs.prepare.outputs.environment != 'ci'
+    if: needs.prepare.outputs.condition != 'ci'
     needs: [prepare]
     runs-on: ubuntu-latest
     steps:
