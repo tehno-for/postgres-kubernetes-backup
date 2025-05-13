@@ -36,7 +36,6 @@ jobs:
               echo "::set-output name=value::staging"
               if [[  "$COMMIT_MSG" == *"_cron_"* ]]; then
                 echo "::set-output name=condition::cronjob"
-              else
               fi
           fi
           # if [[ "${{ github.event_name }}" == "release" ]]; then
