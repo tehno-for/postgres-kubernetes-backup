@@ -34,17 +34,20 @@ jobs:
           echo $COMMIT_MSG
           if [[ "${{ github.event_name }}" == "push" ]]; then
               echo "::set-output name=value::staging"
-              if [[  "$COMMIT_MSG" == *"_cron_"* ]]; then
+              if [[  "$COMMIT_MSG" == *"_cron"* ]]; then
+                echo "::set-output name=condition::cronjob"
+              elif [[  "$COMMIT_MSG" == *"_ci"* ]]; then
+                echo "::set-output name=condition::ci"
+              else 
+                echo "Wo conditions"
+              fi
+          fi
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+              echo "::set-output name=value::production"
+              if [[  "$COMMIT_MSG" == *"_cron"* ]]; then
                 echo "::set-output name=condition::cronjob"
               fi
           fi
-          # if [[ "${{ github.event_name }}" == "release" ]]; then
-          #      if [[  "$COMMIT_MSG" == *"_cron_"* ]]; then
-          #       echo "::set-output name=value::prod_cron"
-          #     else
-          #       echo "::set-output name=value::production"
-          #     fi
-          # fi
       - name: Check Environment
         run: |
           if [[ "${{ steps.environment.outputs.value }}" != "development" && "${{ steps.environment.outputs.value }}" != "staging" && "${{ steps.environment.outputs.value }}" != "production" ]]; then
@@ -72,11 +75,11 @@ jobs:
         if: needs.prepare.outputs.environment == 'production'
         run: echo "production wo cron"
       - name: Check Prod Cron
-        if: needs.prepare.outputs.environment == 'prod_cron'
-        run: echo "production Cron"
+        if: needs.prepare.outputs.environment == 'production' && steps.environment.outputs.condition == 'cronjob'
+        run: echo "Production Cron"
       - name: Check Cron
-        if: needs.prepare.outputs.environment == 'cronjob'
-        run: echo "cronjob"
+        if: needs.prepare.outputs.environment == 'staging' && steps.environment.outputs.condition == 'cronjob'
+        run: echo "Cronjob staging"
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Kubernetes staging context
