@@ -44,9 +44,6 @@ jobs:
           fi
           if [[ "${{ github.event_name }}" == "release" ]]; then
               echo "::set-output name=value::production"
-              if [[  "$COMMIT_MSG" == *"_cron"* ]]; then
-                echo "::set-output name=condition::cronjob"
-              fi
           fi
       - name: Check Environment
         run: |
