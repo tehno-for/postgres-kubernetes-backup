@@ -33,29 +33,31 @@ jobs:
           COMMIT_MSG="$(git log -1 --pretty=%B)"
           echo $COMMIT_MSG
           if [[ "${{ github.event_name }}" == "push" ]]; then
+              echo "::set-output name=value::staging"
               if [[  "$COMMIT_MSG" == *"_cron_"* ]]; then
-                echo "::set-output name=value::cronjob"
+                echo "::set-output name=condition::cronjob"
               else
-                echo "::set-output name=value::staging"
               fi
           fi
-          if [[ "${{ github.event_name }}" == "release" ]]; then
-               if [[  "$COMMIT_MSG" == *"_cron_"* ]]; then
-                echo "::set-output name=value::prod_cron"
-              else
-                echo "::set-output name=value::production"
-              fi
-          fi
+          # if [[ "${{ github.event_name }}" == "release" ]]; then
+          #      if [[  "$COMMIT_MSG" == *"_cron_"* ]]; then
+          #       echo "::set-output name=value::prod_cron"
+          #     else
+          #       echo "::set-output name=value::production"
+          #     fi
+          # fi
       - name: Check Environment
         run: |
-          if [[ "${{ steps.environment.outputs.value }}" != "development" && "${{ steps.environment.outputs.value }}" != "staging" && "${{ steps.environment.outputs.value }}" != "production" && "${{ steps.environment.outputs.value }}" != "cronjob" && "${{ steps.environment.outputs.value }}" != "prod_cron" ]]; then
+          if [[ "${{ steps.environment.outputs.value }}" != "development" && "${{ steps.environment.outputs.value }}" != "staging" && "${{ steps.environment.outputs.value }}" != "production" ]]; then
             echo "Invalid Environment: ${{ steps.environment.outputs.value }}"
             exit 1
           fi
           echo "Environment: ${{ steps.environment.outputs.value }}"
+          echo "Condition: ${{ steps.environment.outputs.condition  }}"
     outputs:
       version: ${{ steps.version.outputs.value  }}
       environment: ${{ steps.environment.outputs.value  }}
+      condition: ${{ steps.environment.outputs.condition  }}
       publish_url: https://stg.liza.zone
 
 ####
