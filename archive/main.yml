@@ -34,25 +34,32 @@ jobs:
           echo $COMMIT_MSG
           if [[  "$COMMIT_MSG" == *"_ci"* ]]; then
               echo "::set-output name=value::ci"
-          elif [[ "${{ github.ref_name }}" == "develop"}} ]]; then
-              echo "::set-output name=condition::staging"
-          elif [[ "${{ github.ref_name }}" == "main" }} ]];; then
-              echo "::set-output name=condition::production"
-          elif [[ "${{ github.ref_name }}" == "build/cicd" }} ]];; then
-              echo "::set-output name=condition::staging"
+          if [[ "${{ github.event_name }}" == "push" ]]; then
+              echo "::set-output name=value::staging"
+              if [[  "$COMMIT_MSG" == *"_cron"* ]]; then
+                echo "::set-output name=condition::cronjob"
+              elif [[  "$COMMIT_MSG" == *"_ci"* ]]; then
+                echo "::set-output name=condition::ci"
+              else 
+                echo "Wo conditions"
+              fi
           fi
-
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+              echo "::set-output name=value::production"
+          fi
       - name: Check Environment
         run: |
-          if [[ "${{ steps.environment.outputs.value }}" != "ci" && "${{ steps.environment.outputs.value }}" != "staging" && "${{ steps.environment.outputs.value }}" != "production" ]]; then
+          if [[ "${{ steps.environment.outputs.value }}" != "development" && "${{ steps.environment.outputs.value }}" != "staging" && "${{ steps.environment.outputs.value }}" != "production" ]]; then
             echo "Invalid Environment: ${{ steps.environment.outputs.value }}"
             exit 1
           fi
           echo "Environment: ${{ steps.environment.outputs.value }}"
+          echo "Condition: ${{ steps.environment.outputs.condition  }}"
     outputs:
       version: ${{ steps.version.outputs.value  }}
       environment: ${{ steps.environment.outputs.value  }}
       condition: ${{ steps.environment.outputs.condition  }}
+      publish_url: https://stg.liza.zone
 
 ####
   rollout:
@@ -67,6 +74,12 @@ jobs:
       - name: Check Prod Standart
         if: needs.prepare.outputs.environment == 'production'
         run: echo "production wo cron"
+      - name: Check Prod Cron
+        if: needs.prepare.outputs.environment == 'production' && steps.environment.outputs.condition == 'cronjob'
+        run: echo "Production Cron"
+      - name: Check Cron
+        if: needs.prepare.outputs.environment == 'staging' && steps.environment.outputs.condition == 'cronjob'
+        run: echo "Cronjob staging"
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Kubernetes staging context
@@ -75,14 +88,14 @@ jobs:
         with:
           method: service-account
           k8s-url: ${{ secrets.K8S_STAGE_ENDPOINT }}
-          k8s-secret: ${{ secrets.K8S_STAGE_ACCOUNT }}
+          k8s-secret: ${{ secrets.K8S_STAGE_APP_ACCOUNT }}
       - name: Kubernetes cron context
         uses: Azure/k8s-set-context@v2
-        if: needs.prepare.outputs.environment == 'production'
+        if: needs.prepare.outputs.environment == 'cronjob'
         with:
           method: service-account
-          k8s-url: ${{ secrets.K8S_PRODUCTION_ENDPOINT }}
-          k8s-secret: ${{ secrets.K8S_PRODUCTION_ACCOUNT }}
+          k8s-url: ${{ secrets.K8S_STAGE_ENDPOINT }}
+          k8s-secret: ${{ secrets.K8S_STAGE_CRON_ACCOUNT }}
       - name: Check workflow stage
         if: needs.prepare.outputs.environment == 'staging'
         run: |
