@@ -78,7 +78,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Show branch from GitHub context
-        run: echo "Branch: ${{ github.ref }}"
+        run: |
+              echo "Rollout"
+              echo "Branch: ${{ github.ref }}"
 
       # - name: Set up Buildx
       #   id: buildx
@@ -193,7 +195,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       - name: Show branch from GitHub context
-        run: echo "Branch: ${{ github.ref }}"
+        run: |
+              echo "Rollout"
+              echo "Branch: ${{ github.ref }}"
 
 
       # - name: Kubernetes staging context
