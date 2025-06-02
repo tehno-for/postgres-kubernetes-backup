@@ -77,109 +77,112 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-      - name: Set up Buildx
-        id: buildx
-        uses: docker/setup-buildx-action@v1
-      - name: Login to GitHub Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Repository Owner to lowercase
-        run: |
-          echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
-        env:
-          OWNER: "${{ github.repository_owner }}"
-      - name: Create API Image
-        if: needs.prepare.outputs.environment == 'staging' && needs.prepare.outputs.condition != 'cronjobs' && needs.prepare.outputs.condition != 'envs'
-        uses: docker/build-push-action@v2
-        with:
-          file: ./.ci/Dockerfile
-          target: api
-          context: .
-          tags: ghcr.io/${{ env.OWNER_LC }}/api:${{ needs.prepare.outputs.version }}, ghcr.io/${{ env.OWNER_LC }}/api:latest
-          push: true
-      - name: Create Worker Image
-        if: needs.prepare.outputs.environment == 'staging' && needs.prepare.outputs.condition != 'cronjobs' && needs.prepare.outputs.condition != 'envs'
-        uses: docker/build-push-action@v2
-        with:
-          file: ./.ci/Dockerfile
-          target: workers
-          context: .
-          tags: ghcr.io/${{ env.OWNER_LC }}/workers:${{ needs.prepare.outputs.version }}, ghcr.io/${{ env.OWNER_LC }}/workers:latest
-          push: true
-      - name: Create Admin Stage Dashboard Image
-        if: needs.prepare.outputs.environment == 'staging' && needs.prepare.outputs.condition != 'cronjobs' && needs.prepare.outputs.condition != 'envs'
-        uses: docker/build-push-action@v2
-        with:
-          file: ./.ci/Dockerfile
-          target: admin-dashboard
-          context: .
-          build-args: |
-            "MAIN_ENV=staging"
-          tags: ghcr.io/${{ env.OWNER_LC }}/admin-dashboard:${{ needs.prepare.outputs.version }}, ghcr.io/${{ env.OWNER_LC }}/admin-dashboard:latest
-          push: true
-      - name: Create Events Stage Dashboard Image
-        if: needs.prepare.outputs.environment == 'staging' && needs.prepare.outputs.condition != 'cronjobs' && needs.prepare.outputs.condition != 'envs'
-        uses: docker/build-push-action@v2
-        with:
-          file: ./.ci/Dockerfile
-          target: events-dashboard
-          context: .
-          build-args: |
-            "MAIN_ENV=staging"
-          tags: ghcr.io/${{ env.OWNER_LC }}/events-dashboard:${{ needs.prepare.outputs.version }}, ghcr.io/${{ env.OWNER_LC }}/events-dashboard:latest
-          push: true
-      - name: Create DB-Migration Image
-        if: needs.prepare.outputs.environment == 'staging' && needs.prepare.outputs.condition != 'cronjobs' && needs.prepare.outputs.condition != 'envs'
-        uses: docker/build-push-action@v2
-        with:
-          file: ./.ci/Dockerfile
-          target: database-migration
-          context: .
-          tags: ghcr.io/${{ env.OWNER_LC }}/database-migration:${{ needs.prepare.outputs.version }}, ghcr.io/${{ env.OWNER_LC }}/database-migration:latest
-          push: true
-      - name: Create Realtime Stage Image
-        if: needs.prepare.outputs.environment == 'staging' && needs.prepare.outputs.condition != 'cronjobs' && needs.prepare.outputs.condition != 'envs'
-        uses: docker/build-push-action@v2
-        with:
-          file: ./.ci/Dockerfile
-          target: realtime
-          context: .
-          tags: ghcr.io/${{ env.OWNER_LC }}/realtime:${{ needs.prepare.outputs.version }}, ghcr.io/${{ env.OWNER_LC }}/realtime:latest
-          push: true
-      - name: Create Cron Jobs Stage Image
-        if: needs.prepare.outputs.environment == 'staging' && needs.prepare.outputs.condition != 'envs'
-        uses: docker/build-push-action@v2
-        with:
-          file: ./.ci/Dockerfile
-          target: cronjob
-          context: .
-          tags: ghcr.io/${{ env.OWNER_LC }}/cronjob:${{ needs.prepare.outputs.version }}, ghcr.io/${{ env.OWNER_LC }}/cronjob:latest
-          push: true
-      - name: Create Admin Prod Dashboard Image
-        if: needs.prepare.outputs.environment == 'production' 
-        uses: docker/build-push-action@v2
-        with:
-          file: ./.ci/Dockerfile
-          target: admin-dashboard
-          context: .
-          build-args: |
-            "MAIN_ENV=prod"
-          tags: ghcr.io/${{ env.OWNER_LC }}/admin-dashboard-prod:${{ needs.prepare.outputs.version }}, ghcr.io/${{ env.OWNER_LC }}/admin-dashboard-prod:latest
-          push: true
-      - name: Create Event Prod Dashboard Image
-        if: needs.prepare.outputs.environment == 'production'
-        uses: docker/build-push-action@v2
-        with:
-          file: ./.ci/Dockerfile
-          target: events-dashboard
-          context: .
-          build-args: |
-            "MAIN_ENV=prod"
-          tags: ghcr.io/${{ env.OWNER_LC }}/events-dashboard-prod:${{ needs.prepare.outputs.version }}, ghcr.io/${{ env.OWNER_LC }}/events-dashboard-prod:latest
-          push: true
+      - name: Show branch from GitHub context
+        run: echo "Branch: ${{ github.ref }}"
+
+      # - name: Set up Buildx
+      #   id: buildx
+      #   uses: docker/setup-buildx-action@v1
+      # - name: Login to GitHub Registry
+      #   uses: docker/login-action@v2
+      #   with:
+      #     registry: ghcr.io
+      #     username: ${{ github.repository_owner }}
+      #     password: ${{ secrets.GITHUB_TOKEN }}
+      # - name: Repository Owner to lowercase
+      #   run: |
+      #     echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
+      #   env:
+      #     OWNER: "${{ github.repository_owner }}"
+      # - name: Create API Image
+      #   if: needs.prepare.outputs.environment == 'staging' && needs.prepare.outputs.condition != 'cronjobs' && needs.prepare.outputs.condition != 'envs'
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     file: ./.ci/Dockerfile
+      #     target: api
+      #     context: .
+      #     tags: ghcr.io/${{ env.OWNER_LC }}/api:${{ needs.prepare.outputs.version }}, ghcr.io/${{ env.OWNER_LC }}/api:latest
+      #     push: true
+      # - name: Create Worker Image
+      #   if: needs.prepare.outputs.environment == 'staging' && needs.prepare.outputs.condition != 'cronjobs' && needs.prepare.outputs.condition != 'envs'
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     file: ./.ci/Dockerfile
+      #     target: workers
+      #     context: .
+      #     tags: ghcr.io/${{ env.OWNER_LC }}/workers:${{ needs.prepare.outputs.version }}, ghcr.io/${{ env.OWNER_LC }}/workers:latest
+      #     push: true
+      # - name: Create Admin Stage Dashboard Image
+      #   if: needs.prepare.outputs.environment == 'staging' && needs.prepare.outputs.condition != 'cronjobs' && needs.prepare.outputs.condition != 'envs'
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     file: ./.ci/Dockerfile
+      #     target: admin-dashboard
+      #     context: .
+      #     build-args: |
+      #       "MAIN_ENV=staging"
+      #     tags: ghcr.io/${{ env.OWNER_LC }}/admin-dashboard:${{ needs.prepare.outputs.version }}, ghcr.io/${{ env.OWNER_LC }}/admin-dashboard:latest
+      #     push: true
+      # - name: Create Events Stage Dashboard Image
+      #   if: needs.prepare.outputs.environment == 'staging' && needs.prepare.outputs.condition != 'cronjobs' && needs.prepare.outputs.condition != 'envs'
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     file: ./.ci/Dockerfile
+      #     target: events-dashboard
+      #     context: .
+      #     build-args: |
+      #       "MAIN_ENV=staging"
+      #     tags: ghcr.io/${{ env.OWNER_LC }}/events-dashboard:${{ needs.prepare.outputs.version }}, ghcr.io/${{ env.OWNER_LC }}/events-dashboard:latest
+      #     push: true
+      # - name: Create DB-Migration Image
+      #   if: needs.prepare.outputs.environment == 'staging' && needs.prepare.outputs.condition != 'cronjobs' && needs.prepare.outputs.condition != 'envs'
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     file: ./.ci/Dockerfile
+      #     target: database-migration
+      #     context: .
+      #     tags: ghcr.io/${{ env.OWNER_LC }}/database-migration:${{ needs.prepare.outputs.version }}, ghcr.io/${{ env.OWNER_LC }}/database-migration:latest
+      #     push: true
+      # - name: Create Realtime Stage Image
+      #   if: needs.prepare.outputs.environment == 'staging' && needs.prepare.outputs.condition != 'cronjobs' && needs.prepare.outputs.condition != 'envs'
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     file: ./.ci/Dockerfile
+      #     target: realtime
+      #     context: .
+      #     tags: ghcr.io/${{ env.OWNER_LC }}/realtime:${{ needs.prepare.outputs.version }}, ghcr.io/${{ env.OWNER_LC }}/realtime:latest
+      #     push: true
+      # - name: Create Cron Jobs Stage Image
+      #   if: needs.prepare.outputs.environment == 'staging' && needs.prepare.outputs.condition != 'envs'
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     file: ./.ci/Dockerfile
+      #     target: cronjob
+      #     context: .
+      #     tags: ghcr.io/${{ env.OWNER_LC }}/cronjob:${{ needs.prepare.outputs.version }}, ghcr.io/${{ env.OWNER_LC }}/cronjob:latest
+      #     push: true
+      # - name: Create Admin Prod Dashboard Image
+      #   if: needs.prepare.outputs.environment == 'production' 
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     file: ./.ci/Dockerfile
+      #     target: admin-dashboard
+      #     context: .
+      #     build-args: |
+      #       "MAIN_ENV=prod"
+      #     tags: ghcr.io/${{ env.OWNER_LC }}/admin-dashboard-prod:${{ needs.prepare.outputs.version }}, ghcr.io/${{ env.OWNER_LC }}/admin-dashboard-prod:latest
+      #     push: true
+      # - name: Create Event Prod Dashboard Image
+      #   if: needs.prepare.outputs.environment == 'production'
+      #   uses: docker/build-push-action@v2
+      #   with:
+      #     file: ./.ci/Dockerfile
+      #     target: events-dashboard
+      #     context: .
+      #     build-args: |
+      #       "MAIN_ENV=prod"
+      #     tags: ghcr.io/${{ env.OWNER_LC }}/events-dashboard-prod:${{ needs.prepare.outputs.version }}, ghcr.io/${{ env.OWNER_LC }}/events-dashboard-prod:latest
+      #     push: true
 
   rollout:
     name: Rollout
@@ -189,69 +192,72 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+      - name: Show branch from GitHub context
+        run: echo "Branch: ${{ github.ref }}"
 
-      - name: Kubernetes staging context
-        uses: Azure/k8s-set-context@v2
-        if: needs.prepare.outputs.environment == 'staging'
-        with:
-          method: service-account
-          k8s-url: ${{ secrets.K8S_STAGE_ENDPOINT }}
-          k8s-secret: ${{ secrets.K8S_STAGE_ACCOUNT }}
 
-      - name: Kubernetes production context
-        uses: Azure/k8s-set-context@v2
-        if: needs.prepare.outputs.environment == 'production'
-        with:
-          method: service-account
-          k8s-url: ${{ secrets.K8S_PRODUCTION_ENDPOINT }}
-          k8s-secret: ${{ secrets.K8S_PRODUCTION_ACCOUNT }}
+      # - name: Kubernetes staging context
+      #   uses: Azure/k8s-set-context@v2
+      #   if: needs.prepare.outputs.environment == 'staging'
+      #   with:
+      #     method: service-account
+      #     k8s-url: ${{ secrets.K8S_STAGE_ENDPOINT }}
+      #     k8s-secret: ${{ secrets.K8S_STAGE_ACCOUNT }}
 
-      - name: Pre release/commit backup
-        run: |
-              kubectl delete -f .infrastructure/${{ needs.prepare.outputs.environment }}/backup/backup-job.yml
-              kubectl apply -f .infrastructure/${{ needs.prepare.outputs.environment }}/backup/backup-job.yml
+      # - name: Kubernetes production context
+      #   uses: Azure/k8s-set-context@v2
+      #   if: needs.prepare.outputs.environment == 'production'
+      #   with:
+      #     method: service-account
+      #     k8s-url: ${{ secrets.K8S_PRODUCTION_ENDPOINT }}
+      #     k8s-secret: ${{ secrets.K8S_PRODUCTION_ACCOUNT }}
 
-      - name: Check backup job status
-        if: needs.prepare.outputs.environment == 'production'
-        run: kubectl wait --for=condition=Complete job/backup-job --timeout=3600s
+      # - name: Pre release/commit backup
+      #   run: |
+      #         kubectl delete -f .infrastructure/${{ needs.prepare.outputs.environment }}/backup/backup-job.yml
+      #         kubectl apply -f .infrastructure/${{ needs.prepare.outputs.environment }}/backup/backup-job.yml
 
-      - name: Recreate Migration Job
-        if: needs.prepare.outputs.condition != 'cronjobs' || needs.prepare.outputs.environment == 'production'
-        run: |
-              kubectl delete -f .infrastructure/${{ needs.prepare.outputs.environment }}/apps/migration-job.yml
-              kubectl apply -f .infrastructure/${{ needs.prepare.outputs.environment }}/apps/migration-job.yml
+      # - name: Check backup job status
+      #   if: needs.prepare.outputs.environment == 'production'
+      #   run: kubectl wait --for=condition=Complete job/backup-job --timeout=3600s
 
-      - name: Apply new workflow configurations
-        if: needs.prepare.outputs.condition != 'cronjobs' || needs.prepare.outputs.environment == 'production'
-        run: kubectl apply -f .infrastructure/${{ needs.prepare.outputs.environment }}/apps
+      # - name: Recreate Migration Job
+      #   if: needs.prepare.outputs.condition != 'cronjobs' || needs.prepare.outputs.environment == 'production'
+      #   run: |
+      #         kubectl delete -f .infrastructure/${{ needs.prepare.outputs.environment }}/apps/migration-job.yml
+      #         kubectl apply -f .infrastructure/${{ needs.prepare.outputs.environment }}/apps/migration-job.yml
 
-      - name: Rollout
-        if: needs.prepare.outputs.condition != 'cronjobs' || needs.prepare.outputs.environment == 'production'  || needs.prepare.outputs.condition != 'envs'
-        run: kubectl rollout restart deploy
+      # - name: Apply new workflow configurations
+      #   if: needs.prepare.outputs.condition != 'cronjobs' || needs.prepare.outputs.environment == 'production'
+      #   run: kubectl apply -f .infrastructure/${{ needs.prepare.outputs.environment }}/apps
 
-      - name: Check Pods
-        run: kubectl get pods
+      # - name: Rollout
+      #   if: needs.prepare.outputs.condition != 'cronjobs' || needs.prepare.outputs.environment == 'production'  || needs.prepare.outputs.condition != 'envs'
+      #   run: kubectl rollout restart deploy
 
-      - name: Apply new cronjobs
-        run: kubectl apply -f .infrastructure/${{ needs.prepare.outputs.environment }}/cronjobs
+      # - name: Check Pods
+      #   run: kubectl get pods
 
-  backup_check_stg:
-    name: backup_check_stg
-    needs: [prepare, build, rollout]
-    if: needs.prepare.outputs.environment == 'staging' && needs.prepare.outputs.condition != 'ci' && needs.prepare.outputs.condition != 'envs'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      # - name: Apply new cronjobs
+      #   run: kubectl apply -f .infrastructure/${{ needs.prepare.outputs.environment }}/cronjobs
 
-      - name: Kubernetes staging context
-        uses: Azure/k8s-set-context@v2
-        with:
-          method: service-account
-          k8s-url: ${{ secrets.K8S_STAGE_ENDPOINT }}
-          k8s-secret: ${{ secrets.K8S_STAGE_ACCOUNT }}
+  # backup_check_stg:
+  #   name: backup_check_stg
+  #   needs: [prepare, build, rollout]
+  #   if: needs.prepare.outputs.environment == 'staging' && needs.prepare.outputs.condition != 'ci' && needs.prepare.outputs.condition != 'envs'
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
 
-      - name: Check backup job status
-        run: kubectl wait --for=condition=Complete job/backup-job --timeout=3600s
+  #     - name: Kubernetes staging context
+  #       uses: Azure/k8s-set-context@v2
+  #       with:
+  #         method: service-account
+  #         k8s-url: ${{ secrets.K8S_STAGE_ENDPOINT }}
+  #         k8s-secret: ${{ secrets.K8S_STAGE_ACCOUNT }}
+
+  #     - name: Check backup job status
+  #       run: kubectl wait --for=condition=Complete job/backup-job --timeout=3600s
 
 
   # notify-testers:
