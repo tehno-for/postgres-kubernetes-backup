@@ -35,9 +35,9 @@ jobs:
           if [[  "$COMMIT_MSG" == *"_ci"* ]]; then
             echo "::set-output name=value::ci"
           else
-            if [[ "${{ github.ref_name }}" == "develop"}} ]]; then
+            if [[ "${{ github.ref_name }}" == "develop" ]]; then
               echo "::set-output name=branch::staging"
-            elif [[ "${{ github.ref_name }}" == "main" }} ]]; then
+            elif [[ "${{ github.ref_name }}" == "main" ]]; then
               echo "::set-output name=branch::production"
             elif [[ "${{ github.ref_name }}" == "build/cicd" }} ]]; then
               echo "::set-output name=branch::staging"
