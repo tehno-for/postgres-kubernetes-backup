@@ -52,7 +52,7 @@ jobs:
             echo "Invalid Environment: ${{ steps.environment.outputs.branch }}"
             exit 1
           fi
-          echo "Environment: ${{ steps.environment.outputs.value }}"
+          echo "Target branch: ${{ steps.environment.outputs.branch }}"
     outputs:
       version: ${{ steps.version.outputs.value  }}
       environment: ${{ steps.environment.outputs.value  }}
