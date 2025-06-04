@@ -39,7 +39,7 @@ jobs:
               echo "::set-output name=branch::staging"
             elif [[ "${{ github.ref_name }}" == "main" ]]; then
               echo "::set-output name=branch::production"
-            elif [[ "${{ github.ref_name }}" == "build/cicd" }} ]]; then
+            elif [[ "${{ github.ref_name }}" == "build/cicd" ]]; then
               echo "::set-output name=branch::staging"
             else 
               echo "No result"
