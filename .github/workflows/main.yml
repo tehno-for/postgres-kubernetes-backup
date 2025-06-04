@@ -34,12 +34,16 @@ jobs:
           echo $COMMIT_MSG
           if [[  "$COMMIT_MSG" == *"_ci"* ]]; then
               echo "::set-output name=value::ci"
-          elif [[ "${{ github.ref_name }}" == "develop"}} ]]; then
-              echo "::set-output name=condition::staging"
-          elif [[ "${{ github.ref_name }}" == "main" }} ]]; then
-              echo "::set-output name=condition::production"
-          elif [[ "${{ github.ref_name }}" == "build/cicd" }} ]]; then
-              echo "::set-output name=condition::staging"
+          else
+            if [[ "${{ github.ref_name }}" == "develop"}} ]]; then
+                echo "::set-output name=condition::staging"
+            elif [[ "${{ github.ref_name }}" == "main" }} ]]; then
+                echo "::set-output name=condition::production"
+            elif [[ "${{ github.ref_name }}" == "build/cicd" }} ]]; then
+                echo "::set-output name=condition::staging"
+            else 
+              echo "No result"
+            fi
           fi
 
       - name: Check Environment
