@@ -42,21 +42,21 @@ jobs:
             elif [[ "${{ github.ref_name }}" == "build/cicd" ]]; then
               echo "::set-output name=branch::staging"
             else 
-              echo "No result"
+              echo "Not targeted branch"
             fi
           fi
 
       - name: Check Environment
         run: |
-          if [[ "${{ steps.environment.outputs.value }}" != "ci" && "${{ steps.environment.outputs.value }}" != "staging" && "${{ steps.environment.outputs.value }}" != "production" ]]; then
-            echo "Invalid Environment: ${{ steps.environment.outputs.value }}"
+          if [[ "${{ steps.environment.outputs.branch }}" != "ci" && "${{ steps.environment.outputs.branch }}" != "staging" && "${{ steps.environment.outputs.branch }}" != "production" ]]; then
+            echo "Invalid Environment: ${{ steps.environment.outputs.branch }}"
             exit 1
           fi
           echo "Environment: ${{ steps.environment.outputs.value }}"
     outputs:
       version: ${{ steps.version.outputs.value  }}
       environment: ${{ steps.environment.outputs.value  }}
-      condition: ${{ steps.environment.outputs.condition  }}
+      condition: ${{ steps.environment.outputs.branch  }}
 
 ####
   rollout:
