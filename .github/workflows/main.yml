@@ -1,4 +1,4 @@
-environmentname: Deployment
+name: Deployment
 on:
   push:
     environmentes:
