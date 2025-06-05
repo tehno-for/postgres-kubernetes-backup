@@ -26,17 +26,17 @@ jobs:
           echo $COMMIT_MSG
           if [[  "$COMMIT_MSG" == *"_ci"* ]]; then
             echo "::set-output name=condition::ci"
-          else
-            if [[ "${{ github.ref_name }}" == "develop" ]]; then
-              echo "::set-output name=value::staging"
-            elif [[ "${{ github.ref_name }}" == "main" ]]; then
-              echo "::set-output name=value::production"
-            elif [[ "${{ github.ref_name }}" == "build/cicd" ]]; then
-              echo "::set-output name=value::staging"
-            else 
-              echo "Not targeted branch"
-            fi
           fi
+          if [[ "${{ github.ref_name }}" == "develop" ]]; then
+            echo "::set-output name=value::staging"
+          elif [[ "${{ github.ref_name }}" == "main" ]]; then
+            echo "::set-output name=value::production"
+          elif [[ "${{ github.ref_name }}" == "build/cicd" ]]; then
+            echo "::set-output name=value::staging"
+          else 
+            echo "Not targeted branch"
+          fi
+
 
       - name: Check Environment
         run: |
