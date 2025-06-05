@@ -17,8 +17,16 @@ jobs:
         id: version
         run: |
           echo "Reading package.json"
-          PACKAGE_VERSION=$(cat ./package.json | jq '.version' | tr -d '"')
+          PACKAGE_VERSION="0.0.1" 
           echo ::set-output name=value::$PACKAGE_VERSION-build.${{ github.run_id }}
+      - name: Check Version
+        run: |
+          if [[ "${{ steps.version.outputs.value  }}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$ ]]; then
+            echo "Version: ${{ steps.version.outputs.value  }}"
+          else
+            echo "Invalid Version: ${{ steps.version.outputs.value }}"
+            exit 1
+          fi
       - name: Select Environment
         id: environment
         run: |
@@ -36,8 +44,6 @@ jobs:
           else 
             echo "Not targeted branch"
           fi
-
-
       - name: Check Environment
         run: |
           if [[ "${{ steps.environment.outputs.value }}" != "staging" && "${{ steps.environment.outputs.value }}" != "production" ]]; then
@@ -50,6 +56,7 @@ jobs:
       version: ${{ steps.version.outputs.value  }}
       environment: ${{ steps.environment.outputs.value  }}
       condition: ${{ steps.environment.outputs.condition  }}
+
 
   build:
     name: Build
