@@ -40,11 +40,12 @@ jobs:
 
       - name: Check Environment
         run: |
-          if [[ "${{ steps.environment.outputs.value }}" != "ci" && "${{ steps.environment.outputs.value }}" != "staging" && "${{ steps.environment.outputs.value }}" != "production" ]]; then
+          if [[ "${{ steps.environment.outputs.value }}" != "staging" && "${{ steps.environment.outputs.value }}" != "production" ]]; then
             echo "Invalid Environment: ${{ steps.environment.outputs.value }}"
             exit 1
           fi
           echo "Target environment: ${{ steps.environment.outputs.value }}"
+          echo "Condition:  ${{ steps.environment.outputs.value }}"
     outputs:
       version: ${{ steps.version.outputs.value  }}
       environment: ${{ steps.environment.outputs.value  }}
