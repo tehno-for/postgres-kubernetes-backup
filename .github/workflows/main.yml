@@ -25,14 +25,14 @@ jobs:
           COMMIT_MSG="$(git log -1 --pretty=%B)"
           echo $COMMIT_MSG
           if [[  "$COMMIT_MSG" == *"_ci"* ]]; then
-            echo "::set-output name=value::ci"
+            echo "::set-output name=condition::ci"
           else
             if [[ "${{ github.ref_name }}" == "develop" ]]; then
-              echo "::set-output name=environment::staging"
+              echo "::set-output name=value::staging"
             elif [[ "${{ github.ref_name }}" == "main" ]]; then
-              echo "::set-output name=environment::production"
+              echo "::set-output name=value::production"
             elif [[ "${{ github.ref_name }}" == "build/cicd" ]]; then
-              echo "::set-output name=environment::staging"
+              echo "::set-output name=value::staging"
             else 
               echo "Not targeted branch"
             fi
@@ -40,15 +40,15 @@ jobs:
 
       - name: Check Environment
         run: |
-          if [[ "${{ steps.environment.outputs.environment }}" != "ci" && "${{ steps.environment.outputs.environment }}" != "staging" && "${{ steps.environment.outputs.environment }}" != "production" ]]; then
-            echo "Invalid Environment: ${{ steps.environment.outputs.environment }}"
+          if [[ "${{ steps.environment.outputs.value }}" != "ci" && "${{ steps.environment.outputs.value }}" != "staging" && "${{ steps.environment.outputs.value }}" != "production" ]]; then
+            echo "Invalid Environment: ${{ steps.environment.outputs.value }}"
             exit 1
           fi
-          echo "Target environment: ${{ steps.environment.outputs.environment }}"
+          echo "Target environment: ${{ steps.environment.outputs.value }}"
     outputs:
       version: ${{ steps.version.outputs.value  }}
       environment: ${{ steps.environment.outputs.value  }}
-      condition: ${{ steps.environment.outputs.value  }}
+      condition: ${{ steps.environment.outputs.condition  }}
 
   build:
     name: Build
