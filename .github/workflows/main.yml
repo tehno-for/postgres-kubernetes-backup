@@ -1,19 +1,11 @@
-name: Deployment
+environmentname: Deployment
 on:
   push:
-    branches:
+    environmentes:
       - main
-  workflow_dispatch:
-    inputs:
-      confirm:
-        required: true
-        description: "WARNING this triggers a production rollout"
-  release:
-    types:
-      - created
-    branches:
-      - main
-###
+      - development
+      - build/cicd
+
 jobs:
   prepare:
     name: Prepare
@@ -36,11 +28,11 @@ jobs:
             echo "::set-output name=value::ci"
           else
             if [[ "${{ github.ref_name }}" == "develop" ]]; then
-              echo "::set-output name=branch::staging"
+              echo "::set-output name=environment::staging"
             elif [[ "${{ github.ref_name }}" == "main" ]]; then
-              echo "::set-output name=branch::production"
+              echo "::set-output name=environment::production"
             elif [[ "${{ github.ref_name }}" == "build/cicd" ]]; then
-              echo "::set-output name=branch::staging"
+              echo "::set-output name=environment::staging"
             else 
               echo "Not targeted branch"
             fi
@@ -48,55 +40,74 @@ jobs:
 
       - name: Check Environment
         run: |
-          if [[ "${{ steps.environment.outputs.branch }}" != "ci" && "${{ steps.environment.outputs.branch }}" != "staging" && "${{ steps.environment.outputs.branch }}" != "production" ]]; then
-            echo "Invalid Environment: ${{ steps.environment.outputs.branch }}"
+          if [[ "${{ steps.environment.outputs.environment }}" != "ci" && "${{ steps.environment.outputs.environment }}" != "staging" && "${{ steps.environment.outputs.environment }}" != "production" ]]; then
+            echo "Invalid Environment: ${{ steps.environment.outputs.environment }}"
             exit 1
           fi
-          echo "Target branch: ${{ steps.environment.outputs.branch }}"
+          echo "Target environment: ${{ steps.environment.outputs.environment }}"
     outputs:
       version: ${{ steps.version.outputs.value  }}
       environment: ${{ steps.environment.outputs.value  }}
-      condition: ${{ steps.environment.outputs.branch  }}
+      condition: ${{ steps.environment.outputs.value  }}
 
-####
+  build:
+    name: Build
+    if: needs.prepare.outputs.condition != 'ci'
+    runs-on: ubuntu-latest
+    needs: [prepare]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+      - name: Set up Buildx
+        id: buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Login to GitHub Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Repository Owner to lowercase
+        run: |
+          echo "OWNER_LC=${OWNER,,}" >>${GITHUB_ENV}
+        env:
+          OWNER: "${{ github.repository_owner }}"
+
+
+      - name: Create Web Stage Image
+        if: needs.prepare.outputs.environment == 'staging'
+        run: echo "start staging"
+      - name: Create Web Prod Image
+        if: needs.prepare.outputs.environment == 'production'
+        run: echo "start production"
+
   rollout:
     name: Rollout
     if: needs.prepare.outputs.condition != 'ci'
-    needs: [prepare]
+    needs: [prepare, build]
     runs-on: ubuntu-latest
     steps:
-      - name: Check Stage
-        if: needs.prepare.outputs.environment == 'staging'
-        run: echo "staging"
-      - name: Check Prod Standart
-        if: needs.prepare.outputs.environment == 'production'
-        run: echo "production wo cron"
       - name: Checkout code
         uses: actions/checkout@v3
+
       - name: Kubernetes staging context
         uses: Azure/k8s-set-context@v2
         if: needs.prepare.outputs.environment == 'staging'
-        with:
-          method: service-account
-          k8s-url: ${{ secrets.K8S_STAGE_ENDPOINT }}
-          k8s-secret: ${{ secrets.K8S_STAGE_ACCOUNT }}
-      - name: Kubernetes cron context
+        run: echo "start staging"
+
+      - name: Kubernetes production context
         uses: Azure/k8s-set-context@v2
         if: needs.prepare.outputs.environment == 'production'
-        with:
-          method: service-account
-          k8s-url: ${{ secrets.K8S_PRODUCTION_ENDPOINT }}
-          k8s-secret: ${{ secrets.K8S_PRODUCTION_ACCOUNT }}
-      - name: Check workflow stage
-        if: needs.prepare.outputs.environment == 'staging'
-        run: |
-              kubectl get pods
-      - name: Check workflow cron
-        if: needs.prepare.outputs.environment == 'cronjob'
-        run: |
-              kubectl get pods -n cronjobs
-      - name: Check commit
-        run: |
-              echo "Commit message: ${{ github.event.head_commit.message }}"
-              echo "Commit tag: ${{ github.event.release.tag_name }}"
-              echo "Branch: ${{ github.ref_name }}"
+        run: echo "start production"
+
+      - name: Apply new workflow configurations
+        run: echo "Start for All"
+
+      - name: Rollout
+        run: echo "Start for All"
+
+      - name: Check Pods
+        run: echo "Start for all"
+
+
+
