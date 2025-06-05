@@ -91,12 +91,10 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Kubernetes staging context
-        uses: Azure/k8s-set-context@v2
         if: needs.prepare.outputs.environment == 'staging'
         run: echo "start staging"
 
       - name: Kubernetes production context
-        uses: Azure/k8s-set-context@v2
         if: needs.prepare.outputs.environment == 'production'
         run: echo "start production"
 
