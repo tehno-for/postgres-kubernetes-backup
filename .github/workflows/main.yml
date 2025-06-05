@@ -45,7 +45,7 @@ jobs:
             exit 1
           fi
           echo "Target environment: ${{ steps.environment.outputs.value }}"
-          echo "Condition:  ${{ steps.environment.outputs.value }}"
+          echo "Condition:  ${{ steps.environment.outputs.condition }}"
     outputs:
       version: ${{ steps.version.outputs.value  }}
       environment: ${{ steps.environment.outputs.value  }}
