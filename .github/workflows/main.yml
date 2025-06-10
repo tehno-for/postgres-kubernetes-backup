@@ -32,11 +32,16 @@ jobs:
           fi
       - name: Read Version
         id: version
-        if: steps.environment.outputs.value == "staging"
         run: |
-          echo "Reading package.json"
-          PACKAGE_VERSION="0.0.1" 
-          echo ::set-output name=value::$PACKAGE_VERSION-build.${{ github.run_id }}
+          if [[ "${{ steps.environment.outputs.value }}" != "staging" ; then
+            PACKAGE_VERSION="0.0.1"
+            echo ::set-output name=value::$PACKAGE_VERSION-${{ github.run_id }}
+          elif
+            PACKAGE_VERSION=$(sh bin/extract_version_name)
+            echo ::set-output name=value::$PACKAGE_VERSION
+          else
+            echo "Wo deployed version"
+          fi
       - name: Check Version
         run: |
           if [[ "${{ steps.version.outputs.value  }}" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$ ]]; then
