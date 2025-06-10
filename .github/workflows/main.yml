@@ -37,7 +37,7 @@ jobs:
             PACKAGE_VERSION="0.0.1"
             echo ::set-output name=value::$PACKAGE_VERSION-${{ github.run_id }}
           elif [[ "${{ steps.environment.outputs.value }}" == "production" ]]; then
-            PACKAGE_VERSION=$(sh bin/extract_version_name)
+            PACKAGE_VERSION=$(bash bin/extract_version_name)
             echo ::set-output name=value::$PACKAGE_VERSION
           else
             echo "Wo deployed version"
