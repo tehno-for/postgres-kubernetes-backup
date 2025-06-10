@@ -32,7 +32,7 @@ jobs:
           fi
       - name: Read Version
         id: version
-        if: steps.environment.outputs.value = "staging"
+        if: steps.environment.outputs.value == "staging"
         run: |
           echo "Reading package.json"
           PACKAGE_VERSION="0.0.1" 
