@@ -1,23 +1,5 @@
 #!/bin/bash
 
 # Get the current branch name
-branch_name=$(git rev-parse --abbrev-ref HEAD)
-
-# Try to extract version from branch name
-if [[ "$branch_name" =~ ^(release|hotfix)/([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
-    echo "${BASH_REMATCH[2]}"
-    exit 0
-fi
-
-# Get the latest commit message
-commit_message=$(git log -1 --pretty=%B)
-
-# Try to extract version from commit message
-if [[ "$commit_message" =~ (release|hotfix)/([0-9]+\.[0-9]+\.[0-9]+) ]]; then
-    echo "${BASH_REMATCH[2]}"
-    exit 0
-fi
-
-# If all else fails
-echo "Error: Could not extract version from branch name or commit message." >&2
+echo "hello world"
 exit 1

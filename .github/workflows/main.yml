@@ -3,8 +3,7 @@ on:
   push:
     environmentes:
       - main
-      - development
-      - build/cicd
+      - develop
 
 jobs:
   prepare:
@@ -20,13 +19,13 @@ jobs:
           echo $COMMIT_MSG
           if [[  "$COMMIT_MSG" == *"_ci"* ]]; then
             echo "::set-output name=condition::ci"
+          elif [[ "$COMMIT_MSG" =~ ^(release|hotfix)/([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then 
+             echo "::set-output name=condition::production"
           fi
           if [[ "${{ github.ref_name }}" == "develop" ]]; then
             echo "::set-output name=value::staging"
           elif [[ "${{ github.ref_name }}" == "main" ]]; then
             echo "::set-output name=value::production"
-          elif [[ "${{ github.ref_name }}" == "build/cicd" ]]; then
-            echo "::set-output name=value::staging"
           else 
             echo "Not targeted branch"
           fi
@@ -35,9 +34,9 @@ jobs:
         run: |
           if [[ "${{ steps.environment.outputs.value }}" == "staging" ]]; then
             PACKAGE_VERSION="0.0.1"
-            echo ::set-output name=value::$PACKAGE_VERSION-${{ github.run_id }}
+            echo ::set-output name=value::$PACKAGE_VERSION
           elif [[ "${{ steps.environment.outputs.value }}" == "production" ]]; then
-            PACKAGE_VERSION=$(bash bin/extract_version_name)
+            PACKAGE_VERSION=$COMMIT_MSG
             echo ::set-output name=value::$PACKAGE_VERSION
           else
             echo "Wo deployed version"
@@ -51,6 +50,9 @@ jobs:
             echo "Invalid Version: ${{ steps.version.outputs.value }}"
             exit 1
           fi
+      - name: Check Code
+        id: code
+        run: echo ::set-output name=value::${{ github.run_id }}
       - name: Check Environment
         run: |
           if [[ "${{ steps.environment.outputs.value }}" != "staging" && "${{ steps.environment.outputs.value }}" != "production" ]]; then
@@ -61,6 +63,7 @@ jobs:
           echo "Condition:  ${{ steps.environment.outputs.condition }}"
     outputs:
       version: ${{ steps.version.outputs.value  }}
+      code: ${{ steps.code.outputs.value  }}
       environment: ${{ steps.environment.outputs.value  }}
       condition: ${{ steps.environment.outputs.condition  }}
 
@@ -91,10 +94,34 @@ jobs:
 
       - name: Create Web Stage Image
         if: needs.prepare.outputs.environment == 'staging'
-        run: echo "start staging"
+        # uses: docker/build-push-action@v2
+        # with:
+        #   file: Dockerfile
+        #   target: web
+        #   context: .
+        #   build-args: |
+        #     "APP_ENVIRONMENT=staging"
+        #     "APP_VERSION_CODE=${{needs.prepare.outputs.code}}"
+        #     "APP_VERSION_NAME=$${{needs.prepare.outputs.version}}"
+        #   tags: ghcr.io/${{ env.OWNER_LC }}/web-stg:${{ needs.prepare.outputs.version }}, ghcr.io/${{ env.OWNER_LC }}/web-stg:latest
+        #   push: true
+        run: echo "APP_ENVIRONMENT=stage APP_VERSION_CODE=${{needs.prepare.outputs.code}} APP_VERSION_NAME=${{needs.prepare.outputs.version}}"
       - name: Create Web Prod Image
-        if: needs.prepare.outputs.environment == 'production'
-        run: echo "start production"
+        if: needs.prepare.outputs.environment == 'production' && needs.prepare.outputs.condition == 'production'
+        # uses: docker/build-push-action@v2
+        # with:
+        #   file: Dockerfile
+        #   target: web
+        #   context: .
+        #   build-args: |
+        #     "APP_ENVIRONMENT=production"
+        #     "APP_VERSION_CODE=${{needs.prepare.outputs.code}}"
+        #     "APP_VERSION_NAME=${{needs.prepare.outputs.version}}"
+        #   tags: ghcr.io/${{ env.OWNER_LC }}/web-prod:${{ needs.prepare.outputs.version }}, ghcr.io/${{ env.OWNER_LC }}/web-prod:latest
+        #   push: true
+        run: echo "APP_ENVIRONMENT=production APP_VERSION_CODE=${{needs.prepare.outputs.code}} APP_VERSION_NAME=${{needs.prepare.outputs.version}}"
+
+
 
   rollout:
     name: Rollout
