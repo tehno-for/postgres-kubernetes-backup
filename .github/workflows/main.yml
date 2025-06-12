@@ -18,7 +18,9 @@ jobs:
           COMMIT_MSG="$(git log -1 --pretty=%B)"
           echo $COMMIT_MSG
           if [[ "$COMMIT_MSG" =~ ^(release|hotfix)/([0-9]+\.[0-9]+\.[0-9]+)$ && "${{ github.ref_name }}" == "main" ]]; then 
-             echo "::set-output name=value::production"
+            echo "::set-output name=value::production"
+          else
+            echo "::set-output name=value::ci"
           fi
           if [[ "${{ github.ref_name }}" == "develop" ]]; then
             echo "::set-output name=value::staging"
@@ -33,7 +35,8 @@ jobs:
             PACKAGE_VERSION="${BASH_REMATCH[2]}"
             echo ::set-output name=value::$PACKAGE_VERSION
           else
-            echo "Wo deployed version"
+            PACKAGE_VERSION="0.0.0"
+            echo ::set-output name=value::$PACKAGE_VERSION
           fi
           echo $PACKAGE_VERSION
       - name: Check Version
@@ -59,12 +62,11 @@ jobs:
       version: ${{ steps.version.outputs.value  }}
       code: ${{ steps.code.outputs.value  }}
       environment: ${{ steps.environment.outputs.value  }}
-      condition: ${{ steps.environment.outputs.condition  }}
 
 
   build:
     name: Build
-    if: needs.prepare.outputs.condition != 'ci'
+    if: needs.prepare.outputs.environment != 'ci'
     runs-on: ubuntu-latest
     needs: [prepare]
     steps:
