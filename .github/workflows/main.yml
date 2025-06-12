@@ -4,7 +4,7 @@ on:
     environmentes:
       - main
       - develop
-
+#
 jobs:
   prepare:
     name: Prepare
