@@ -17,17 +17,11 @@ jobs:
         run: |
           COMMIT_MSG="$(git log -1 --pretty=%B)"
           echo $COMMIT_MSG
-          if [[  "$COMMIT_MSG" == *"_ci"* ]]; then
-            echo "::set-output name=condition::ci"
-          elif [[ "$COMMIT_MSG" =~ ^(release|hotfix)/([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then 
-             echo "::set-output name=condition::production"
+          if [[ "$COMMIT_MSG" =~ ^(release|hotfix)/([0-9]+\.[0-9]+\.[0-9]+)$ && "${{ github.ref_name }}" == "main" ]]; then 
+             echo "::set-output name=value::production"
           fi
           if [[ "${{ github.ref_name }}" == "develop" ]]; then
             echo "::set-output name=value::staging"
-          elif [[ "${{ github.ref_name }}" == "main" ]]; then
-            echo "::set-output name=value::production"
-          else 
-            echo "Not targeted branch"
           fi
       - name: Read Version
         id: version
@@ -36,7 +30,7 @@ jobs:
             PACKAGE_VERSION="0.0.1"
             echo ::set-output name=value::$PACKAGE_VERSION
           elif [[ "${{ steps.environment.outputs.value }}" == "production" ]]; then
-            PACKAGE_VERSION=$COMMIT_MSG
+            PACKAGE_VERSION="${BASH_REMATCH[2]}"
             echo ::set-output name=value::$PACKAGE_VERSION
           else
             echo "Wo deployed version"
