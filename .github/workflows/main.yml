@@ -35,7 +35,7 @@ jobs:
             PACKAGE_VERSION="${BASH_REMATCH[2]}"
             echo ::set-output name=value::$PACKAGE_VERSION
           else
-            PACKAGE_VERSION="0.0.0"
+            PACKAGE_VERSION="0.0.0-abandoned"
             echo ::set-output name=value::$PACKAGE_VERSION
           fi
           echo $PACKAGE_VERSION
