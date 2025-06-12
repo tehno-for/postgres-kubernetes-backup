@@ -19,7 +19,7 @@ jobs:
           echo $COMMIT_MSG
           if [[ "$COMMIT_MSG" =~ (release|hotfix)/([0-9]+\.[0-9]+\.[0-9]+) && "${{ github.ref_name }}" == "main" ]]; then 
             echo "::set-output name=value::production"
-            PACKAGE_VERSION="${BASH_REMATCH[2]}"
+
           else
             echo "::set-output name=value::ci"
           fi
@@ -33,8 +33,10 @@ jobs:
             PACKAGE_VERSION="0.0.1"
             echo ::set-output name=value::$PACKAGE_VERSION
           elif [[ "${{ steps.environment.outputs.value }}" == "production" ]]; then
-
-            echo ::set-output name=value::$PACKAGE_VERSION
+            if [[ "$COMMIT_MSG" =~ (release|hotfix)/([0-9]+\.[0-9]+\.[0-9]+) ]]; then 
+              PACKAGE_VERSION="${BASH_REMATCH[2]}"
+              echo ::set-output name=value::$PACKAGE_VERSION
+            fi
           else
             PACKAGE_VERSION="0.0.0-abandoned"
             echo ::set-output name=value::$PACKAGE_VERSION
