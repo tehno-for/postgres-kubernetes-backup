@@ -29,6 +29,8 @@ jobs:
       - name: Read Version
         id: version
         run: |
+          COMMIT_MSG="$(git log -1 --pretty=%B)"
+          echo $COMMIT_MSG
           if [[ "${{ steps.environment.outputs.value }}" == "staging" ]]; then
             PACKAGE_VERSION="0.0.1"
             echo ::set-output name=value::$PACKAGE_VERSION
